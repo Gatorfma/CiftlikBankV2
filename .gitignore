@@ -1,25 +1,17 @@
-# Ignore environment variables
+node_modules
 .env
 
-# Ignore Node.js dependencies
-node_modules/
+# Hardhat files
+/cache
+/artifacts
 
-# Ignore Truffle build directory
-build/
+# TypeChain files
+/typechain
+/typechain-types
 
-# Ignore Truffle artifacts
-.openzeppelin/
+# solidity-coverage files
+/coverage
+/coverage.json
 
-# Ignore Truffle temporary files
-.openzeppelin
-.cache
-.history
-
-# Ignore OS-specific files
-.DS_Store
-Thumbs.db
-
-# Ignore log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
