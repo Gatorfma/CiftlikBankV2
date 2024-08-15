@@ -8,11 +8,11 @@ async function main() {
     console.log("Factory deployed to:", factory.address);
 
     // Parameters to deploy a DummyData contract via the Factory
-    const ada = 123;
-    const parsel = 456;
+    const ada = 789;
+    const parsel = 753;
     const verim = 500;
-    const kisi = "Furkan";
-    const ekim = 2024;
+    const kisi = "Mert";
+    const ekim = 1723708776;
     const hektar = 500;
 
     // Deploy a DummyData contract using the Factory's deployDummy function

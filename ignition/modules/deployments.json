@@ -1,0 +1,11 @@
+{
+  "sepolia": {
+    "sell": {
+      "Factory": "0xBb17c761Fe8F9cD1C07ecDeFF1Cf2C05F6Db2CB2",
+      "dummyDataAddresses": [
+        "0x02DC29ccf8ffCe7Cc5f3d7d54ffDC29da2b94Cda",
+        "0x97373d4F524566161f59Cb7978D80537D615af93"
+      ]
+    }
+  }
+}
