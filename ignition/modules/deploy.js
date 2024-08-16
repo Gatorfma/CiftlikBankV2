@@ -1,16 +1,18 @@
 require("@nomiclabs/hardhat-ethers");
 const fs = require("fs");
+const { ethers } = require("hardhat");
 const path = require("path");
 
 const deploymentsFile = path.join(__dirname, "deployments.json");
 
-async function deployIfNotDeployed(contractName, deployer) {
+async function deployIfNotDeployed(contractName) {
     let contractAddress;
     let networkName = hre.network.name; // Dynamically get the network name from Hardhat
+    let deployments = {};
 
     // Check if the deployments file exists
     if (fs.existsSync(deploymentsFile)) {
-        const deployments = JSON.parse(fs.readFileSync(deploymentsFile));
+        deployments = JSON.parse(fs.readFileSync(deploymentsFile));
 
         // Check if the network is present in the deployments file
         if (!deployments[networkName]) {
@@ -29,7 +31,7 @@ async function deployIfNotDeployed(contractName, deployer) {
         };
     }
 
-    // Deploy the contract if it hasn't been deployed
+    // Deploy the Factory contract if it hasn't been deployed
     if (!contractAddress) {
         console.log(`Deploying ${contractName} on ${networkName}...`);
         const Contract = await hre.ethers.getContractFactory(contractName);
@@ -50,10 +52,16 @@ async function deployIfNotDeployed(contractName, deployer) {
     }
 
     // Return the contract instance
-    return await hre.ethers.getContractAt(contractName, contractAddress);
+    const factoryContract = await hre.ethers.getContractAt(contractName, contractAddress);
+
+    // Now call the connectAndModify function to deploy DummyData contracts
+    
+    await connectAndModify(factoryContract, hre);
+
+    return factoryContract;
 }
 
-async function connectAndModify(contract, hre) {
+async function connectAndModify(factoryContract, hre) {
     const ada = 789;
     const parsel = 753;
     const verim = 500;
@@ -61,8 +69,8 @@ async function connectAndModify(contract, hre) {
     const ekim = 1723708776;
     const hektar = 500;
 
-    // Deploy the DummyData contract by calling deployDummy
-    const tx = await contract.deployDummy(ada, parsel, verim, kisi, ekim, hektar);
+    // Deploy the DummyData contract by calling deployDummy from the Factory contract
+    const tx = await factoryContract.deployDummy(ada, parsel, verim, kisi, ekim, hektar);
     const receipt = await tx.wait();
 
     // Assuming the DummyData contract address is returned in the events or logs
@@ -73,7 +81,7 @@ async function connectAndModify(contract, hre) {
         ? JSON.parse(fs.readFileSync(deploymentsFile))
         : {};
 
-    const networkName = "sepolia";
+    const networkName = hre.network.name;
 
     // Ensure the network and sell sections exist
     if (!deployments[networkName]) {
@@ -100,7 +108,8 @@ async function connectAndModify(contract, hre) {
     console.log(`DummyData deployed and address stored: ${dummyDataAddress}`);
 }
 
-async function getContractAddress(contractName, index = 0) {
+
+async function getContractAddress(contractName) {
     const deploymentsPath = path.join(__dirname, 'deployments.json');
     let deployments;
 
@@ -110,7 +119,7 @@ async function getContractAddress(contractName, index = 0) {
         deployments = {};
     }
 
-    const networkName = "sepolia";
+    const networkName = hre.network.name;
 
     // Ensure the necessary structure exists in the deployments object
     if (!deployments[networkName]) {
@@ -157,11 +166,13 @@ async function getContractAddress(contractName, index = 0) {
         console.log(`New DummyData contract deployed at: ${contract.address}`);
     }
 
-    if (index >= dummyDataAddresses.length) {
-        throw new Error(`Index ${index} out of bounds for DummyData contracts on ${networkName} network`);
+    const lastIndex = dummyDataAddresses.length - 1; // Get the index of the last address
+
+    if (lastIndex < 0) {
+        throw new Error(`No DummyData contracts found in the array for network ${networkName}`);
     }
 
-    return dummyDataAddresses[index];
+    return dummyDataAddresses[lastIndex];
 }
 
 async function childCall(contractAddress, satisAmount){
@@ -179,20 +190,14 @@ async function childCall(contractAddress, satisAmount){
 }
 
 async function main() {
-    const deployer = await hre.ethers.getSigner();
-    
-    // Deploy Factory if not already deployed
-    const contract = await deployIfNotDeployed("Factory", deployer);
 
-    const satisAmount = 25;
+    // Deploy Factory if not already deployed
+    const contract = await deployIfNotDeployed("Factory");
+
+    const satisAmount = 1;
     
     // Get the first DummyData contract address
     const contractAddress = getContractAddress("DummyData");
-
-    if (!contractAddress) {
-        console.log("No DummyData contract found, skipping childCall.");
-        return; // Or deploy a new DummyData contract, or handle accordingly
-    }
 
     // Modify the data according to the contract and post the data values
     await connectAndModify(contract, hre);
