@@ -6,43 +6,38 @@ const deploymentsFile = path.join(__dirname, "deployments.json");
 
 async function deployIfNotDeployed(contractName, deployer) {
     let contractAddress;
+    let networkName = hre.network.name; // Dynamically get the network name from Hardhat
 
     // Check if the deployments file exists
     if (fs.existsSync(deploymentsFile)) {
         const deployments = JSON.parse(fs.readFileSync(deploymentsFile));
 
-        // Specify the network name directly
-        const networkName = "sepolia";
+        // Check if the network is present in the deployments file
+        if (!deployments[networkName]) {
+            deployments[networkName] = {}; // Initialize the network section if it doesn't exist
+        }
 
-        // Check if this contract is already deployed on the sepolia network under the sell object
-        if (deployments[networkName] && deployments[networkName].sell && deployments[networkName].sell[contractName]) {
-            contractAddress = deployments[networkName].sell[contractName];
+        // Check if the contract is already deployed on this network
+        if (deployments[networkName][contractName]) {
+            contractAddress = deployments[networkName][contractName];
             console.log(`${contractName} is already deployed on ${networkName} at ${contractAddress}`);
         }
+    } else {
+        // If the deployments file does not exist, create an initial structure
+        deployments = {
+            [networkName]: {}
+        };
     }
 
     // Deploy the contract if it hasn't been deployed
     if (!contractAddress) {
-        console.log(`Deploying ${contractName}...`);
+        console.log(`Deploying ${contractName} on ${networkName}...`);
         const Contract = await hre.ethers.getContractFactory(contractName);
         const contract = await Contract.deploy();
         await contract.deployed();
 
-        // Load existing deployments or create a new structure
-        const deployments = fs.existsSync(deploymentsFile)
-            ? JSON.parse(fs.readFileSync(deploymentsFile))
-            : {};
-
-        // Ensure the network and sell sections exist
-        if (!deployments[networkName]) {
-            deployments[networkName] = {};
-        }
-        if (!deployments[networkName].sell) {
-            deployments[networkName].sell = {};
-        }
-
-        // Store the contract address under the sell object
-        deployments[networkName].sell[contractName] = contract.address;
+        // Store the contract address under the network section
+        deployments[networkName][contractName] = contract.address;
 
         // Write the updated deployments back to the file
         fs.writeFileSync(

@@ -11,5 +11,10 @@ module.exports = {
       chainid: 11155111,
       accounts: [`0x${PRIVATE_KEY}`],
     },
+    ganache: {
+      url: 'HTTP://127.0.0.1:7545',
+      chainid: 5777,
+      accounts: [`0x2ad2a2c66591c6bb985320c7c7c766e897637e938910f866cb35ee9150e65c8d`],
+    },
   },
 };
