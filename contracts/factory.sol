@@ -39,7 +39,7 @@ contract Factory {
         // The bytecode of the DummyData contract
         bytes memory bytecode = abi.encodePacked(
             type(DummyData).creationCode,
-            abi.encode(ada, parsel, verim, kisi, ekim, hektar)
+            abi.encode(ada, parsel, verim, kisi, ekim, hektar, address(this))  // Pass the factory address
         );
 
         address newContract = Create2.deploy(msg.value, salt, bytecode);
@@ -62,7 +62,7 @@ contract Factory {
 
         bytes memory bytecode = abi.encodePacked(
             type(DummyData).creationCode,
-            abi.encode(ada, parsel, verim, kisi, ekim, hektar)
+            abi.encode(ada, parsel, verim, kisi, ekim, hektar, address(this))  // Pass the factory address
         );
 
         return Create2.computeAddress(salt, keccak256(bytecode), address(this));
