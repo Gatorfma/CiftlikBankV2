@@ -54,9 +54,15 @@ async function deployIfNotDeployed(contractName) {
     // Return the contract instance
     const factoryContract = await hre.ethers.getContractAt(contractName, contractAddress);
 
-    // Now call the connectAndModify function to deploy DummyData contracts
-    
-    await connectAndModify(factoryContract, hre);
+    // Check if the dummyDataAddresses array is empty
+    if (!deployments[networkName].sell || !deployments[networkName].sell.dummyDataAddresses || deployments[networkName].sell.dummyDataAddresses.length === 0) {
+        console.log("No DummyData contracts found. Calling connectAndModify to deploy one.");
+        // Call connectAndModify to deploy DummyData contracts
+        await connectAndModify(factoryContract, hre);
+    } else {
+        console.log("DummyData contracts already exist. Skipping deployment.");
+    }
+
 
     return factoryContract;
 }
@@ -74,7 +80,7 @@ async function connectAndModify(factoryContract, hre) {
     const receipt = await tx.wait();
 
     // Assuming the DummyData contract address is returned in the events or logs
-    const dummyDataAddress = receipt.events[0].args.contractAddress; // Adjust based on actual event emitted
+    const dummyDataAddress = receipt.events[0].args.contractAddress; 
 
     // Load the existing deployments
     let deployments = fs.existsSync(deploymentsFile)
