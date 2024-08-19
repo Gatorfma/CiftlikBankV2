@@ -71,7 +71,7 @@ async function connectAndModify(factoryContract, hre) {
     const ada = 789;
     const parsel = 753;
     const verim = 500;
-    const kisi = "Mert";
+    const kisi = "Gator";
     const ekim = 1723708776;
     const hektar = 500;
 

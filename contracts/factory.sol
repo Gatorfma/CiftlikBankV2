@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.20;
 
 import "./dummy.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract Factory {
     address public official;
@@ -18,6 +19,12 @@ contract Factory {
         _;
     }
 
+    // Function to generate salt from kisi
+    function generateSalt(string memory kisi) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(kisi));
+    }
+
+    // Function to deploy the DummyData contract using CREATE2 with the generated salt
     function deployDummy( 
         uint ada, 
         uint parsel, 
@@ -27,11 +34,38 @@ contract Factory {
         uint hektar
     ) external payable onlyOfficial returns(address) {
         
-        DummyData newContract = new DummyData(ada, parsel, verim, kisi, ekim, hektar);
+        bytes32 salt = generateSalt(kisi);
 
-        emit eFactory(address(newContract), kisi);
+        // The bytecode of the DummyData contract
+        bytes memory bytecode = abi.encodePacked(
+            type(DummyData).creationCode,
+            abi.encode(ada, parsel, verim, kisi, ekim, hektar)
+        );
 
-        return address(newContract);
+        address newContract = Create2.deploy(msg.value, salt, bytecode);
+
+        emit eFactory(newContract, kisi);
+
+        return newContract;
+    }
+
+    // Function to compute the address of the contract
+    function computeAddress(
+        uint ada, 
+        uint parsel, 
+        uint verim, 
+        string memory kisi, 
+        uint ekim, 
+        uint hektar
+    ) external view returns (address) {
+        bytes32 salt = generateSalt(kisi);
+
+        bytes memory bytecode = abi.encodePacked(
+            type(DummyData).creationCode,
+            abi.encode(ada, parsel, verim, kisi, ekim, hektar)
+        );
+
+        return Create2.computeAddress(salt, keccak256(bytecode), address(this));
     }
 
     function changeOfficial(address newOfficial) external onlyOfficial {
