@@ -24,25 +24,22 @@ contract Factory {
         return keccak256(abi.encodePacked(kisi));
     }
 
-    // Function to deploy the DummyData contract using CREATE2 with the generated salt
-    function deployDummy( 
-        uint ada, 
-        uint parsel, 
-        uint verim, 
-        string memory kisi, 
-        uint ekim, 
-        uint hektar
-    ) external payable onlyOfficial returns(address) {
-        
+    // Function to deploy the DummyData contract using CREATE2 with only the kisi parameter
+    function deployDummy(string memory kisi) external payable onlyOfficial returns(address) {
         bytes32 salt = generateSalt(kisi);
 
-        // The bytecode of the DummyData contract
+        // The bytecode of the DummyData contract, initializing it with the factory address only
         bytes memory bytecode = abi.encodePacked(
             type(DummyData).creationCode,
-            abi.encode(ada, parsel, verim, kisi, ekim, hektar, address(this))  // Pass the factory address
+            abi.encode(address(this))  // Pass only the factory address
         );
 
+        // Compute the address before deploying
+        address predictedAddress = Create2.computeAddress(salt, keccak256(bytecode), address(this));
         address newContract = Create2.deploy(msg.value, salt, bytecode);
+
+        // Check if the predicted address matches the deployed address
+        require(newContract == predictedAddress, "Deployed address does not match the predicted address");
 
         emit eFactory(newContract, kisi);
 
@@ -50,27 +47,47 @@ contract Factory {
     }
 
     // Function to compute the address of the contract
-    function computeAddress(
-        uint ada, 
-        uint parsel, 
-        uint verim, 
-        string memory kisi, 
-        uint ekim, 
-        uint hektar
-    ) external view returns (address) {
+    function computeAddress(string memory kisi) external view returns (address) {
         bytes32 salt = generateSalt(kisi);
 
         bytes memory bytecode = abi.encodePacked(
             type(DummyData).creationCode,
-            abi.encode(ada, parsel, verim, kisi, ekim, hektar, address(this))  // Pass the factory address
+            abi.encode(address(this))  // Pass only the factory address
         );
 
         return Create2.computeAddress(salt, keccak256(bytecode), address(this));
     }
 
+    // Function to change the official
     function changeOfficial(address newOfficial) external onlyOfficial {
         require(newOfficial != address(0), "New official cannot be the zero address");
         emit OfficialChanged(official, newOfficial);
         official = newOfficial;
+    }
+
+    // Function to perform a sale on a deployed DummyData contract
+    function sellProduct(
+        address dummyDataAddress,
+        string memory productTypeToSell,
+        uint saleAmount
+    ) external onlyOfficial returns (uint) {
+        DummyData dummyData = DummyData(dummyDataAddress);
+        uint remainingAmount = dummyData.satis(productTypeToSell, saleAmount);
+        return remainingAmount;
+    }
+
+    // New function to add a product to a deployed DummyData contract
+    function addProductToDummy(
+        address dummyDataAddress,
+        string memory productType, 
+        uint ada, 
+        uint parsel, 
+        uint verim, 
+        string memory kisi,  
+        uint ekim, 
+        uint hektar
+    ) external onlyOfficial {
+        DummyData dummyData = DummyData(dummyDataAddress);
+        dummyData.addProduct(productType, ada, parsel, verim, kisi, ekim, hektar);
     }
 }
