@@ -4,11 +4,10 @@ pragma solidity ^0.8.20;
 import "./dummy.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 
+import "./events.sol";
+
 contract Factory {
     address public official;
-
-    event eFactory(address contractAddress, string kisi);
-    event OfficialChanged(address indexed oldOfficial, address indexed newOfficial);
 
     constructor() {
         official = msg.sender;  // Set the deployer as the official
@@ -41,7 +40,7 @@ contract Factory {
         // Check if the predicted address matches the deployed address
         require(newContract == predictedAddress, "Deployed address does not match the predicted address");
 
-        emit eFactory(newContract, kisi);
+        emit Events.eFactory(newContract, kisi);
 
         return newContract;
     }
@@ -61,7 +60,7 @@ contract Factory {
     // Function to change the official
     function changeOfficial(address newOfficial) external onlyOfficial {
         require(newOfficial != address(0), "New official cannot be the zero address");
-        emit OfficialChanged(official, newOfficial);
+        emit Events.OfficialChanged(official, newOfficial);
         official = newOfficial;
     }
 

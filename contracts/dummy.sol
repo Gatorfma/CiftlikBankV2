@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "./events.sol";
+
 contract DummyData {
 
     struct Ekin {
@@ -22,8 +24,6 @@ contract DummyData {
     address public factory;
     string[] public productTypes;
 
-    event Sell(string indexed product, uint kalan);
-    event ProductAdded(string indexed productType, string kisi);
 
     constructor(address factoryAddress) payable {
     factory = factoryAddress;
@@ -50,7 +50,7 @@ contract DummyData {
         urunler[productType] = Ekin(ada, parsel, verim, ekim, hektar, calculateUrun(verim, hektar), kisi);
         productTypes.push(productType);
 
-        emit ProductAdded(productType, kisi);
+        emit Events.ProductAdded(productType, kisi);
     }
 
     function queryProductDetails(string memory productType) 
@@ -85,7 +85,7 @@ contract DummyData {
     function satis(string memory productType, uint satisAmount) external onlyFactory returns (uint) {
         require(satisAmount <= urunler[productType].kalan, "Insufficient remaining product");
         urunler[productType].kalan -= satisAmount;
-        emit Sell(productType, urunler[productType].kalan);
+        emit Events.Sell(productType, urunler[productType].kalan);
         return urunler[productType].kalan;
     }
 
