@@ -7,16 +7,16 @@ async function main() {
     // let tx = await Factory.deployDummy("Mert2408");
     // tx.wait()
 
-    tx = await Factory.addProductToDummy("0x1eb54dCdAce0ddb1464392A1d71771Ad83d6eF05", "Patates", 1, 3, 10, "Mert2408", 1724938373, 100000)
+    tx = await Factory.addProductToDummy("0x1eb54dCdAce0ddb1464392A1d71771Ad83d6eF05", "Cilek", 1, 4, 10, "Mert2408", 1724938373, 100000)
     
-    tx.wait();
+    await tx.wait();
 
     factory = await ethers.getContractFactory("DummyData");
     let Dummy = factory.attach("0x1eb54dCdAce0ddb1464392A1d71771Ad83d6eF05");
 
     console.log(
         `queryProductDetails :
-            ${await Dummy.queryProductDetails("Patates")}
+            ${await Dummy.queryProductDetails("Cilek")}
         `
     )
 }
